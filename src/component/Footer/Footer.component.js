@@ -15,21 +15,24 @@
  * @link https://github.com/scandipwa/base-theme
  */
 
-import PropTypes from 'prop-types';
-import { Component } from 'react';
+import PropTypes from "prop-types";
+import { Component } from "react";
 
-import CategoryTabel from 'Component/CategoryTabel';
-import CmsBlock from 'Component/CmsBlock';
-import ContentWrapper from 'Component/ContentWrapper';
-import Image from 'Component/Image';
-import Link from 'Component/Link';
-import NewsletterSubscription from 'Component/NewsletterSubscription';
-import { DeviceType } from 'Type/Device.type';
-import { noopFn } from 'Util/Common';
+import CmsBlock from "Component/CmsBlock";
+import ContentWrapper from "Component/ContentWrapper";
+import Image from "Component/Image";
+import Link from "Component/Link";
+import NewsletterSubscription from "Component/NewsletterSubscription";
+import { DeviceType } from "Type/Device.type";
+import { noopFn } from "Util/Common";
 
-import { COLUMN_MAP, NEWSLETTER_COLUMN, RENDER_NEWSLETTER } from './Footer.config';
+import {
+  COLUMN_MAP,
+  NEWSLETTER_COLUMN,
+  RENDER_NEWSLETTER,
+} from "./Footer.config";
 
-import './Footer.style';
+import "./Footer.style";
 
 /**
  * Page footer
@@ -37,247 +40,231 @@ import './Footer.style';
  * @namespace Component/Footer/Component
  */
 export class Footer extends Component {
-    static propTypes = {
-        copyright: PropTypes.string,
-        isVisibleOnMobile: PropTypes.bool,
-        isVisible: PropTypes.bool,
-        device: DeviceType.isRequired,
-        newsletterActive: PropTypes.bool.isRequired,
-        onItemClick: PropTypes.func,
-        incrementHandler: PropTypes.func.isRequired,
-        decrementHandler: PropTypes.func.isRequired
-    };
+  static propTypes = {
+    copyright: PropTypes.string,
+    isVisibleOnMobile: PropTypes.bool,
+    isVisible: PropTypes.bool,
+    device: DeviceType.isRequired,
+    newsletterActive: PropTypes.bool.isRequired,
+    onItemClick: PropTypes.func,
+    incrementHandler: PropTypes.func.isRequired,
+    decrementHandler: PropTypes.func.isRequired,
+  };
 
-    static defaultProps = {
-        copyright: '',
-        isVisibleOnMobile: false,
-        isVisible: true,
-        onItemClick: noopFn
-    };
+  static defaultProps = {
+    copyright: "",
+    isVisibleOnMobile: false,
+    isVisible: true,
+    onItemClick: noopFn,
+  };
 
-    renderMap = {
-        [RENDER_NEWSLETTER]: {
-            render: this.renderNewsletterSubscriptionBlock.bind(this)
-        }
-    };
+  renderMap = {
+    [RENDER_NEWSLETTER]: {
+      render: this.renderNewsletterSubscriptionBlock.bind(this),
+    },
+  };
 
-    shouldComponentUpdate(nextProps) {
-        const {
-            device: {
-                isMobile
-            },
-            isVisibleOnMobile,
-            copyright,
-            newsletterActive
-        } = this.props;
+  shouldComponentUpdate(nextProps) {
+    const {
+      device: { isMobile },
+      isVisibleOnMobile,
+      copyright,
+      newsletterActive,
+    } = this.props;
 
-        const {
-            device: {
-                isMobile: nextIsMobile
-            },
-            isVisibleOnMobile: nextIsVisibleOnMobile,
-            copyright: nextCopyright,
-            newsletterActive: nextNewsletterActive
-        } = nextProps;
+    const {
+      device: { isMobile: nextIsMobile },
+      isVisibleOnMobile: nextIsVisibleOnMobile,
+      copyright: nextCopyright,
+      newsletterActive: nextNewsletterActive,
+    } = nextProps;
 
-        return isMobile !== nextIsMobile
-            || isVisibleOnMobile !== nextIsVisibleOnMobile
-            || copyright !== nextCopyright
-            || newsletterActive !== nextNewsletterActive;
+    return (
+      isMobile !== nextIsMobile ||
+      isVisibleOnMobile !== nextIsVisibleOnMobile ||
+      copyright !== nextCopyright ||
+      newsletterActive !== nextNewsletterActive
+    );
+  }
+
+  renderColumnItemContent(src, title) {
+    if (!src) {
+      return title;
     }
 
-    renderColumnItemContent(src, title) {
-        if (!src) {
-            return title;
-        }
+    return (
+      <Image mix={{ block: "Footer", elem: "ColumnItemImage" }} src={src} />
+    );
+  }
 
-        return (
-            <Image
-              mix={ { block: 'Footer', elem: 'ColumnItemImage' } }
-              src={ src }
-            />
-        );
+  renderColumnItemLink({ href = "/", title, src }, i) {
+    const mods = src ? { type: "image" } : {};
+    const { onItemClick } = this.props;
+
+    return (
+      <Link
+        block="Footer"
+        elem="ColumnItem"
+        to={href}
+        mods={mods}
+        key={i}
+        aria-label={title}
+        onClick={onItemClick}
+      >
+        {this.renderColumnItemContent(src, title)}
+      </Link>
+    );
+  }
+
+  renderColumnItem(item, i) {
+    const { render } = item;
+
+    if (render) {
+      return this.renderMap[render].render(item, i);
     }
 
-    renderColumnItemLink({ href = '/', title, src }, i) {
-        const mods = src ? { type: 'image' } : {};
-        const { onItemClick } = this.props;
+    return this.renderColumnItemLink(item, i);
+  }
 
-        return (
-            <Link
-              block="Footer"
-              elem="ColumnItem"
-              to={ href }
-              mods={ mods }
-              key={ i }
-              aria-label={ title }
-              onClick={ onItemClick }
-            >
-                { this.renderColumnItemContent(src, title) }
-            </Link>
-        );
+  renderColumn(column, i) {
+    const {
+      title,
+      columnActiveKey,
+      items,
+      isItemsHorizontal,
+      mods = {},
+    } = column;
+
+    const contentMods = isItemsHorizontal ? { direction: "horizontal" } : {};
+
+    const { [columnActiveKey]: isColumnActive } = this.props;
+
+    if (columnActiveKey && !isColumnActive === true) {
+      return null;
     }
 
-    renderColumnItem(item, i) {
-        const { render } = item;
+    return (
+      <div block="Footer" elem="Column" mods={mods} key={i}>
+        <h3 block="Footer" elem="ColumnTitle">
+          {title}
+        </h3>
+        <div block="Footer" elem="ColumnContent" mods={contentMods}>
+          {items.map(this.renderColumnItem.bind(this))}
+        </div>
+      </div>
+    );
+  }
 
-        if (render) {
-            return this.renderMap[render].render(item, i);
-        }
+  renderColumns() {
+    return (
+      <ContentWrapper
+        isNotSection
+        wrapperMix={{ block: "Footer", elem: "Columns" }}
+        label=""
+      >
+        {COLUMN_MAP.map(this.renderColumn.bind(this))}
+      </ContentWrapper>
+    );
+  }
 
-        return this.renderColumnItemLink(item, i);
+  renderNewsletterSubscriptionBlock() {
+    return <NewsletterSubscription key="NewsletterSubscription" />;
+  }
+
+  renderCmsBlockWrapper() {
+    const { footer_content: { footer_cms } = {} } = window.contentConfiguration;
+
+    return (
+      <div
+        block="Footer"
+        elem="CmsBlockWrapper"
+        mix={{ block: "Footer", elem: "Content" }}
+      >
+        <div block="Footer" elem="Columns" mix={{ block: "ContentWrapper" }}>
+          <CmsBlock identifier={footer_cms} />
+          {this.renderColumn({
+            ...NEWSLETTER_COLUMN,
+            mods: { isNewsletter: true },
+          })}
+        </div>
+      </div>
+    );
+  }
+
+  renderContent() {
+    const { footer_content: { footer_cms } = {} } = window.contentConfiguration;
+
+    if (footer_cms) {
+      return this.renderCmsBlockWrapper();
     }
 
-    renderColumn(column, i) {
-        const {
-            title,
-            columnActiveKey,
-            items,
-            isItemsHorizontal,
-            mods = {}
-        } = column;
+    return (
+      <div block="Footer" elem="Content">
+        {this.renderColumns()}
+      </div>
+    );
+  }
 
-        const contentMods = isItemsHorizontal ? { direction: 'horizontal' } : {};
+  renderCopyrightContent() {
+    const { copyright } = this.props;
 
-        const { [columnActiveKey]: isColumnActive } = this.props;
+    return (
+      <ContentWrapper
+        mix={{ block: "Footer", elem: "CopyrightContentWrapper" }}
+        wrapperMix={{ block: "Footer", elem: "CopyrightContent" }}
+        label=""
+      >
+        <span block="Footer" elem="Copyright">
+          {copyright}
+          {" Powered by "}
+          {/* eslint-disable-next-line react/forbid-elements */}
+          <a href="https://scandipwa.com">ScandiPWA</a>
+        </span>
+      </ContentWrapper>
+    );
+  }
 
-        if (columnActiveKey && !isColumnActive === true) {
-            return null;
-        }
+  renderCounterAction() {
+    const { incrementHandler, decrementHandler } = this.props;
 
-        return (
-            <div block="Footer" elem="Column" mods={ mods } key={ i }>
-                <h3 block="Footer" elem="ColumnTitle">
-                    { title }
-                </h3>
-                <div
-                  block="Footer"
-                  elem="ColumnContent"
-                  mods={ contentMods }
-                >
-                    { items.map(this.renderColumnItem.bind(this)) }
-                </div>
-            </div>
-        );
+    return (
+      <ContentWrapper
+        mix={{ block: "Footer", elem: "CounterContentWrapper" }}
+        wrapperMix={{ block: "Footer", elem: "CounterContent" }}
+      >
+        <button onClick={incrementHandler} type="btn">
+          Increase
+        </button>
+        <button onClick={decrementHandler} type="btn">
+          Decrease
+        </button>
+      </ContentWrapper>
+    );
+  }
+
+  render() {
+    const { isVisibleOnMobile, isVisible, device } = this.props;
+
+    if (!isVisible) {
+      return null;
     }
 
-    renderColumns() {
-        return (
-            <ContentWrapper
-              isNotSection
-              wrapperMix={ { block: 'Footer', elem: 'Columns' } }
-              label=""
-            >
-                { COLUMN_MAP.map(this.renderColumn.bind(this)) }
-            </ContentWrapper>
-        );
+    if (!isVisibleOnMobile && device.isMobile) {
+      return null;
     }
 
-    renderNewsletterSubscriptionBlock() {
-        return <NewsletterSubscription key="NewsletterSubscription" />;
+    if (isVisibleOnMobile && !device.isMobile) {
+      return null;
     }
 
-    renderCmsBlockWrapper() {
-        const { footer_content: { footer_cms } = {} } = window.contentConfiguration;
-
-        return (
-            <div
-              block="Footer"
-              elem="CmsBlockWrapper"
-              mix={ { block: 'Footer', elem: 'Content' } }
-            >
-                <div
-                  block="Footer"
-                  elem="Columns"
-                  mix={ { block: 'ContentWrapper' } }
-                >
-                    <CmsBlock identifier={ footer_cms } />
-                    { this.renderColumn({
-                        ...NEWSLETTER_COLUMN,
-                        mods: { isNewsletter: true }
-                    }) }
-                </div>
-            </div>
-        );
-    }
-
-    renderContent() {
-        const { footer_content: { footer_cms } = {} } = window.contentConfiguration;
-
-        if (footer_cms) {
-            return this.renderCmsBlockWrapper();
-        }
-
-        return (
-            <div block="Footer" elem="Content">
-                { this.renderColumns() }
-            </div>
-        );
-    }
-
-    renderCopyrightContent() {
-        const { copyright } = this.props;
-
-        return (
-            <ContentWrapper
-              mix={ { block: 'Footer', elem: 'CopyrightContentWrapper' } }
-              wrapperMix={ { block: 'Footer', elem: 'CopyrightContent' } }
-              label=""
-            >
-                <span block="Footer" elem="Copyright">
-                    { copyright }
-                    { ' Powered by ' }
-                    { /* eslint-disable-next-line react/forbid-elements */ }
-                    <a href="https://scandipwa.com">
-                        ScandiPWA
-                    </a>
-                </span>
-            </ContentWrapper>
-        );
-    }
-
-    renderCounterAction() {
-        const {
-            incrementHandler,
-            decrementHandler
-        } = this.props;
-
-        return (
-            <ContentWrapper
-              mix={ { block: 'Footer', elem: 'CounterContentWrapper' } }
-              wrapperMix={ { block: 'Footer', elem: 'CounterContent' } }
-            >
-            <button onClick={ incrementHandler } type="btn">Increase</button>
-            <button onClick={ decrementHandler } type="btn">Decrease</button>
-            </ContentWrapper>
-        );
-    }
-
-    render() {
-        const { isVisibleOnMobile, isVisible, device } = this.props;
-
-        if (!isVisible) {
-            return null;
-        }
-
-        if (!isVisibleOnMobile && device.isMobile) {
-            return null;
-        }
-
-        if (isVisibleOnMobile && !device.isMobile) {
-            return null;
-        }
-
-        return (
-            <footer block="Footer" aria-label="Footer">
-
-                { this.renderCounterAction() }
-                 <CategoryTabel />
-                { this.renderContent() }
-                { this.renderCopyrightContent() }
-            </footer>
-        );
-    }
+    return (
+      <footer block="Footer" aria-label="Footer">
+        {this.renderCounterAction()}
+        {this.renderContent()}
+        {this.renderCopyrightContent()}
+      </footer>
+    );
+  }
 }
 
 export default Footer;
